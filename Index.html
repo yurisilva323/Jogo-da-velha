@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Velha - Yuri vs Player</title>
+    <style>
+        :root { --primary: #0984e3; --dark: #2d3436; }
+        body { font-family: sans-serif; background-color: #f5f6fa; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .board { display: grid; grid-template-columns: repeat(3, 100px); grid-template-rows: repeat(3, 100px); gap: 10px; background-color: var(--dark); padding: 10px; border-radius: 10px; }
+        .cell { width: 100px; height: 100px; background-color: white; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; cursor: pointer; border-radius: 5px; }
+        .cell.x { color: var(--primary); }
+        .cell.o { color: #d63031; }
+        .status { margin-top: 20px; font-size: 1.2rem; font-weight: bold; height: 30px; }
+        button { margin-top: 20px; padding: 10px 20px; cursor: pointer; background: var(--primary); color: white; border: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Jogo da Velha</h1>
+    <div style="margin-bottom: 10px;">Jogador (X) vs <strong style="color: #d63031;">Yuri (O)</strong></div>
+    <div class="board" id="board">
+        <div class="cell" onclick="makeMove(0)"></div>
+        <div class="cell" onclick="makeMove(1)"></div>
+        <div class="cell" onclick="makeMove(2)"></div>
+        <div class="cell" onclick="makeMove(3)"></div>
+        <div class="cell" onclick="makeMove(4)"></div>
+        <div class="cell" onclick="makeMove(5)"></div>
+        <div class="cell" onclick="makeMove(6)"></div>
+        <div class="cell" onclick="makeMove(7)"></div>
+        <div class="cell" onclick="makeMove(8)"></div>
+    </div>
+    <div class="status" id="status">Sua vez!</div>
+    <button onclick="resetGame()">Reiniciar</button>
+
+    <script>
+        let board = ["", "", "", "", "", "", "", "", ""];
+        let active = true;
+        const cells = document.querySelectorAll('.cell');
+        const status = document.getElementById('status');
+
+        function makeMove(i) {
+            if (board[i] === "" && active) {
+                board[i] = "X";
+                updateBoard();
+                if (checkWin("X")) {
+                    status.innerText = "Você venceu!";
+                    active = false;
+                } else if (!board.includes("")) {
+                    status.innerText = "Empate!";
+                    active = false;
+                } else {
+                    status.innerText = "Yuri está pensando...";
+                    active = false;
+                    setTimeout(yuriTurn, 600);
+                }
+            }
+        }
+
+        function yuriTurn() {
+            let available = board.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+            if (available.length > 0) {
+                let move = available[Math.floor(Math.random() * available.length)];
+                board[move] = "O";
+                updateBoard();
+                if (checkWin("O")) {
+                    status.innerText = "Yuri venceu!";
+                    active = false;
+                } else if (!board.includes("")) {
+                    status.innerText = "Empate!";
+                } else {
+                    status.innerText = "Sua vez!";
+                    active = true;
+                }
+            }
+        }
+
+        function updateBoard() {
+            cells.forEach((cell, i) => {
+                cell.innerText = board[i];
+                cell.className = "cell " + board[i].toLowerCase();
+            });
+        }
+
+        function checkWin(p) {
+            const win = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            return win.some(s => s.every(i => board[i] === p));
+        }
+
+        function resetGame() {
+            board = ["", "", "", "", "", "", "", "", ""];
+            active = true;
+            status.innerText = "Sua vez!";
+            updateBoard();
+        }
+    </script>
+</body>
+</html>
