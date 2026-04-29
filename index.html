@@ -3,240 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo da Velha - Player vs Yuri</title>
+    <title>Player vs Yuri</title>
     <style>
-        :root {
-            --primary-color: #007bff;
-            --secondary-color: #6c757d;
-            --bg-color: #f8f9fa;
-            --text-color: #343a40;
-            --board-bg: #2d3436;
-            --cell-bg: #ffffff;
-            --shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            margin: 0;
-            color: var(--text-color);
-        }
-
-        .board {
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
-            gap: 15px;
-            background-color: var(--board-bg);
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-
-        .cell {
-            width: 100px;
-            height: 100px;
-            background-color: var(--cell-bg);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.1s ease;
-        }
-
-        .cell:hover {
-            background-color: #e9ecef;
-        }
-
-        .cell:active {
-            transform: scale(0.95);
-        }
-
-        .cell.x {
-            color: var(--primary-color);
-        }
-
-        .cell.o {
-            color: #dc3545; /* Vermelho para o Yuri */
-        }
-
-        .status {
-            margin-top: 25px;
-            font-size: 1.5rem;
-            font-weight: 600;
-            height: 35px;
-        }
-
-        .reset-btn {
-            margin-top: 20px;
-            padding: 12px 24px;
-            font-size: 1rem;
-            font-weight: bold;
-            color: #fff;
-            background-color: var(--primary-color);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: var(--shadow);
-            transition: background-color 0.3s ease;
-        }
-
-        .reset-btn:hover {
-            background-color: #0056b3;
-        }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f0f2f5; }
+        .board { display: grid; grid-template-columns: repeat(3, 100px); gap: 10px; background: #2c3e50; padding: 10px; border-radius: 10px; }
+        .cell { width: 100px; height: 100px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; cursor: pointer; border-radius: 5px; }
+        .cell.x { color: #0984e3; }
+        .cell.o { color: #e74c3c; }
+        .status { margin: 20px; font-size: 1.5rem; font-weight: bold; }
+        button { padding: 10px 20px; font-size: 1rem; cursor: pointer; background: #0984e3; color: white; border: none; border-radius: 5px; }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <h1>Player vs Yuri</h1>
-    </div>
-
+    <h1>Player vs Yuri</h1>
     <div class="board" id="board">
-        <div class="cell" data-index="0"></div>
-        <div class="cell" data-index="1"></div>
-        <div class="cell" data-index="2"></div>
-        <div class="cell" data-index="3"></div>
-        <div class="cell" data-index="4"></div>
-        <div class="cell" data-index="5"></div>
-        <div class="cell" data-index="6"></div>
-        <div class="cell" data-index="7"></div>
-        <div class="cell" data-index="8"></div>
+        <div class="cell" onclick="makeMove(0)"></div>
+        <div class="cell" onclick="makeMove(1)"></div>
+        <div class="cell" onclick="makeMove(2)"></div>
+        <div class="cell" onclick="makeMove(3)"></div>
+        <div class="cell" onclick="makeMove(4)"></div>
+        <div class="cell" onclick="makeMove(5)"></div>
+        <div class="cell" onclick="makeMove(6)"></div>
+        <div class="cell" onclick="makeMove(7)"></div>
+        <div class="cell" onclick="makeMove(8)"></div>
     </div>
-
-    <div class="status" id="status">Sua vez (X)!</div>
-    <button class="reset-btn" id="resetBtn">Reiniciar Jogo</button>
+    <div class="status" id="status">Tua vez!</div>
+    <button onclick="reset()">Reiniciar Jogo</button>
 
     <script>
-        const board = document.getElementById('board');
+        let b = ["", "", "", "", "", "", "", "", ""];
+        let active = true;
         const cells = document.querySelectorAll('.cell');
-        const statusText = document.getElementById('status');
-        const resetBtn = document.getElementById('resetBtn');
 
-        let currentPlayer = 'X'; // Humano é X
-        let yuriPlayer = 'O';    // Yuri é O
-        let gameState = ["", "", "", "", "", "", "", "", ""];
-        let gameActive = true;
-
-        const winningConditions = [
-            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Linhas
-            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Colunas
-            [0, 4, 8], [2, 4, 6]             // Diagonais
-        ];
-
-        function handleCellClick(e) {
-            const clickedCell = e.target;
-            const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
-
-            if (gameState[clickedCellIndex] !== "" || !gameActive || currentPlayer === yuriPlayer) {
-                return;
-            }
-
-            cellPlayed(clickedCell, clickedCellIndex);
-            handleResultValidation();
-
-            if (gameActive) {
-                currentPlayer = yuriPlayer;
-                statusText.innerText = "Yuri está pensando...";
-                setTimeout(yuriMove, 800); // Simula pensamento do Yuri
-            }
-        }
-
-        function cellPlayed(clickedCell, clickedCellIndex) {
-            gameState[clickedCellIndex] = currentPlayer;
-            clickedCell.innerText = currentPlayer;
-            clickedCell.classList.add(currentPlayer.toLowerCase());
-        }
-
-        function yuriMove() {
-            if (!gameActive) return;
-
-            // Lógica do Yuri (Aleatória para não ser imbatível)
-            let availableCells = [];
-            gameState.forEach((cell, index) => {
-                if (cell === "") {
-                    availableCells.push(index);
-                }
-            });
-
-            if (availableCells.length > 0) {
-                const randomIndex = Math.floor(Math.random() * availableCells.length);
-                const yuriChoiceIndex = availableCells[randomIndex];
-                
-                const yuriCell = document.querySelector(`[data-index='${yuriChoiceIndex}']`);
-                
-                cellPlayed(yuriCell, yuriChoiceIndex);
-                handleResultValidation();
-
-                if (gameActive) {
-                    currentPlayer = 'X';
-                    statusText.innerText = "Sua vez (X)!";
+        function makeMove(i) {
+            if (b[i] === "" && active) {
+                b[i] = "X";
+                render();
+                if (checkWin("X")) { end("Ganhaste!"); }
+                else if (!b.includes("")) { end("Empate!"); }
+                else {
+                    active = false;
+                    document.getElementById('status').innerText = "Yuri a pensar...";
+                    setTimeout(yuriTurn, 600);
                 }
             }
         }
 
-        function handleResultValidation() {
-            let roundWon = false;
-            for (let i = 0; i < winningConditions.length; i++) {
-                const winCondition = winningConditions[i];
-                let a = gameState[winCondition[0]];
-                let b = gameState[winCondition[1]];
-                let c = gameState[winCondition[2]];
-                if (a === '' || b === '' || c === '') {
-                    continue;
-                }
-                if (a === b && b === c) {
-                    roundWon = true;
-                    break;
-                }
-            }
-
-            if (roundWon) {
-                statusText.innerText = `Fim de jogo! O jogador ${currentPlayer} venceu!`;
-                gameActive = false;
-                return;
-            }
-
-            let roundDraw = !gameState.includes("");
-            if (roundDraw) {
-                statusText.innerText = "Fim de jogo! Empate!";
-                gameActive = false;
-                return;
+        function yuriTurn() {
+            let empty = b.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+            if (empty.length > 0) {
+                let move = empty[Math.floor(Math.random() * empty.length)];
+                b[move] = "O";
+                render();
+                if (checkWin("O")) { end("O Yuri ganhou!"); }
+                else if (!b.includes("")) { end("Empate!"); }
+                else { active = true; document.getElementById('status').innerText = "Tua vez!"; }
             }
         }
 
-        function resetGame() {
-            currentPlayer = 'X';
-            gameState = ["", "", "", "", "", "", "", "", ""];
-            gameActive = true;
-            statusText.innerText = "Sua vez (X)!";
-            cells.forEach(cell => {
-                cell.innerText = "";
-                cell.classList.remove('x', 'o');
+        function render() {
+            cells.forEach((c, i) => {
+                c.innerText = b[i];
+                c.className = `cell ${b[i].toLowerCase()}`;
             });
         }
 
-        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
-        resetBtn.addEventListener('click', resetGame);
+        function checkWin(p) {
+            const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            return wins.some(s => s.every(i => b[i] === p));
+        }
+
+        function end(m) { document.getElementById('status').innerText = m; active = false; }
+
+        function reset() {
+            b = ["", "", "", "", "", "", "", "", ""];
+            active = true;
+            document.getElementById('status').innerText = "Tua vez!";
+            render();
+        }
     </script>
 </body>
 </html>
