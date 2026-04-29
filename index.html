@@ -44,4 +44,79 @@
                 render();
                 if (checkWin("X")) { 
                     end("Ganhaste!"); 
-                } else
+                } else if (!b.includes("")) { 
+                    end("Empate!"); 
+                } else {
+                    active = false;
+                    document.getElementById('status').innerText = "Yuri a pensar...";
+                    setTimeout(yuriTurn, 600);
+                }
+            }
+        }
+
+        function findBestMove(player) {
+            for (let s of wins) {
+                const line = s.map(i => b[i]);
+                // Se o player tem 2 marcas e 1 espaço vazio, retorna o índice do espaço
+                if (line.filter(v => v === player).length === 2 && line.includes("")) {
+                    return s[line.indexOf("")];
+                }
+            }
+            return null;
+        }
+
+        function yuriTurn() {
+            // 1. Prioridade Máxima: Ganhar o jogo
+            let move = findBestMove("O");
+
+            // 2. Segunda Prioridade: Bloquear o jogador
+            if (move === null) move = findBestMove("X");
+
+            // 3. Terceira Prioridade: Dominar o centro (casa 4)
+            if (move === null && b[4] === "") move = 4;
+
+            // 4. Quarta Prioridade: Jogada aleatória (caso não haja perigo ou centro ocupado)
+            if (move === null) {
+                let empty = b.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+                move = empty[Math.floor(Math.random() * empty.length)];
+            }
+
+            if (move !== null) {
+                b[move] = "O";
+                render();
+                if (checkWin("O")) { 
+                    end("O Yuri ganhou!"); 
+                } else if (!b.includes("")) { 
+                    end("Empate!"); 
+                } else { 
+                    active = true; 
+                    document.getElementById('status').innerText = "Tua vez!"; 
+                }
+            }
+        }
+
+        function render() {
+            cells.forEach((c, i) => {
+                c.innerText = b[i];
+                c.className = `cell ${b[i].toLowerCase()}`;
+            });
+        }
+
+        function checkWin(p) {
+            return wins.some(s => s.every(i => b[i] === p));
+        }
+
+        function end(m) { 
+            document.getElementById('status').innerText = m; 
+            active = false; 
+        }
+
+        function reset() {
+            b = ["", "", "", "", "", "", "", "", ""];
+            active = true;
+            document.getElementById('status').innerText = "Tua vez!";
+            render();
+        }
+    </script>
+</body>
+</html>
